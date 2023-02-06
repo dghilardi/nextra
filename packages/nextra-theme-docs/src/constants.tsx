@@ -364,7 +364,8 @@ const titleSchema = z.string()
 const linkItemSchema = z.strictObject({
   href: z.string(),
   newWindow: z.boolean(),
-  title: titleSchema
+  title: titleSchema,
+  accessLevel: z.optional(z.string()),
 })
 
 const menuItemSchema = z.strictObject({

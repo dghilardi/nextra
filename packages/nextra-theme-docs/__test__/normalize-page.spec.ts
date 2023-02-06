@@ -3,6 +3,7 @@ import { cnPageMap, usPageMap } from './__fixture__/pageMap'
 import { normalizePages } from '../src/utils'
 
 const defaultLocale = 'en-US'
+const accessLevels = ['public'];
 
 describe('normalize-page', () => {
   it('zh-CN home', () => {
@@ -11,6 +12,7 @@ describe('normalize-page', () => {
       list: cnPageMap,
       locale: locale,
       defaultLocale,
+      accessLevels,
       route: '/'
     })
     expect(result).toMatchSnapshot()
@@ -22,6 +24,7 @@ describe('normalize-page', () => {
       list: cnPageMap,
       locale: locale,
       defaultLocale,
+      accessLevels,
       route: '/docs/getting-started'
     })
     expect(result).toMatchSnapshot()
@@ -33,6 +36,7 @@ describe('normalize-page', () => {
       list: usPageMap,
       locale: locale,
       defaultLocale,
+      accessLevels,
       route: '/'
     })
     expect(result).toMatchSnapshot()
@@ -44,6 +48,7 @@ describe('normalize-page', () => {
       list: usPageMap,
       locale: locale,
       defaultLocale,
+      accessLevels,
       route: '/docs/getting-started'
     })
     expect(result).toMatchSnapshot()
@@ -75,6 +80,7 @@ describe('normalize-page', () => {
       ],
       locale: 'en-US',
       defaultLocale: 'en-US',
+      accessLevels,
       route: '/500ddd'
     })
     expect(result).toMatchSnapshot()
@@ -106,6 +112,7 @@ describe('normalize-page', () => {
       ],
       locale: 'en-US',
       defaultLocale: 'en-US',
+      accessLevels,
       route: '/500'
     })
     expect(result).toMatchSnapshot()

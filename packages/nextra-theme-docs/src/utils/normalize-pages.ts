@@ -64,6 +64,7 @@ export function normalizePages({
   list,
   locale,
   defaultLocale,
+  accessLevels,
   route,
   docsRoot = '',
   underCurrentDocsRoot = false,
@@ -72,6 +73,7 @@ export function normalizePages({
   list: PageMapItem[]
   locale: string
   defaultLocale?: string
+  accessLevels: string[]
   route: string
   docsRoot?: string
   underCurrentDocsRoot?: boolean
@@ -209,6 +211,7 @@ export function normalizePages({
         list: a.children,
         locale,
         defaultLocale,
+        accessLevels,
         route,
         docsRoot: type === 'page' || type === 'menu' ? a.route : docsRoot,
         underCurrentDocsRoot: underCurrentDocsRoot || isCurrentDocsTree,
@@ -360,11 +363,38 @@ export function normalizePages({
     activeType,
     activeIndex,
     activeThemeContext,
-    activePath,
-    directories,
-    flatDirectories,
-    docsDirectories,
-    flatDocsDirectories,
-    topLevelNavbarItems
-  }
+    activePath: activePath,
+    directories: directories
+      .flatMap(accessLevelChecker(accessLevels)),
+    flatDirectories: flatDirectories
+      .flatMap(accessLevelChecker(accessLevels)),
+    docsDirectories: docsDirectories
+      .flatMap(accessLevelChecker(accessLevels)),
+    flatDocsDirectories: flatDocsDirectories
+      .flatMap(accessLevelChecker(accessLevels)),
+    topLevelNavbarItems: topLevelNavbarItems
+      .flatMap(accessLevelChecker(accessLevels))
+  };
+}
+
+function accessLevelChecker<T extends (MdxFile | FolderWithoutChildren) & { children?: T[], type: string }>(accessLevels: string[]): (i: T) => T[] {
+  return (item: T) => {
+    const filteredChildren = item.children?.flatMap(accessLevelChecker(accessLevels));
+    const filteredItems = (item.type === 'menu' ? filterRecord((item as unknown as IMenuItem).items, menuItem => !menuItem.accessLevel || accessLevels.includes(menuItem.accessLevel)) : undefined);
+    
+    const isValidMenu = filteredItems && Object.keys(filteredItems).length > 0;
+    const hasValidChildren = filteredChildren && filteredChildren.length > 0;
+    const hasValidAccess = item.kind === 'MdxPage' && (!item.frontMatter?.accessLevel || accessLevels.includes(item.frontMatter.accessLevel));
+
+    return isValidMenu
+      || hasValidChildren
+      || hasValidAccess ?
+      [{ ...item, children: filteredChildren, items: filteredItems }] : [];
+  };
+}
+
+function filterRecord<V>(record: Record<string, V> | undefined, predicate: (v: V) => boolean): Record<string, V> | undefined {
+  return record && Object.keys(record)
+    .filter((k) => predicate(record[k]))
+    .reduce((acc, k) => ({ ...acc, [k]: record[k] }), {});
 }

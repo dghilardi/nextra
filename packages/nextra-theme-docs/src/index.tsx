@@ -116,6 +116,7 @@ const InnerLayout = ({
   const config = useConfig()
   const { locale = DEFAULT_LOCALE, defaultLocale } = useRouter()
   const fsPath = useFSRoute()
+  const accessLevels = config.accessLevelProvider();
 
   const {
     activeType,
@@ -133,9 +134,10 @@ const InnerLayout = ({
         list: pageMap,
         locale,
         defaultLocale,
+        accessLevels,
         route: fsPath
       }),
-    [pageMap, locale, defaultLocale, fsPath]
+    [pageMap, locale, defaultLocale, fsPath, accessLevels]
   )
 
   const themeContext = { ...activeThemeContext, ...frontMatter }
