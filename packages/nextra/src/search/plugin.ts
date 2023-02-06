@@ -20,10 +20,10 @@ export class NextraSearchPlugin {
               compilation.moduleGraph.getResolvedModule(entryDependency)
 
             if (entryModule?.buildInfo?.nextraSearch) {
-              const { title, data, indexKey, route } =
+              const { title, data, indexKey, route, accessLevel } =
                 entryModule.buildInfo.nextraSearch
 
-              const indexFilename = `nextra-data-${indexKey}.json`
+              const indexFilename = `nextra-data-${accessLevel}-${indexKey}.json`
               if (indexFiles[indexFilename] === undefined) {
                 indexFiles[indexFilename] = '{'
               }

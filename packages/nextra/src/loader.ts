@@ -195,7 +195,8 @@ async function loader(
         indexKey: searchIndexKey,
         title: fallbackTitle,
         data: structurizedData,
-        route: pageNextRoute
+        route: pageNextRoute,
+        accessLevel: frontMatter.accessLevel || 'public',
       }
     }
   }
