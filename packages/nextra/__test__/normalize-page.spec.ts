@@ -2,6 +2,7 @@ import { normalizePages } from '../src/normalize-pages'
 import { cnPageMap, usPageMap } from './fixture/page-maps/pageMap'
 
 const defaultLocale = 'en-US'
+const accessLevels = ['public'];
 
 describe('normalize-page', () => {
   it('zh-CN home', () => {
@@ -10,6 +11,7 @@ describe('normalize-page', () => {
       list: cnPageMap,
       locale,
       defaultLocale,
+      accessLevels,
       route: '/'
     })
     expect(result).toMatchSnapshot()
@@ -21,6 +23,7 @@ describe('normalize-page', () => {
       list: cnPageMap,
       locale,
       defaultLocale,
+      accessLevels,
       route: '/docs/getting-started'
     })
     expect(result).toMatchSnapshot()
@@ -32,6 +35,7 @@ describe('normalize-page', () => {
       list: usPageMap,
       locale,
       defaultLocale,
+      accessLevels,
       route: '/'
     })
     expect(result).toMatchSnapshot()
@@ -43,6 +47,7 @@ describe('normalize-page', () => {
       list: usPageMap,
       locale,
       defaultLocale,
+      accessLevels,
       route: '/docs/getting-started'
     })
     expect(result).toMatchSnapshot()
@@ -74,6 +79,7 @@ describe('normalize-page', () => {
       ],
       locale: 'en-US',
       defaultLocale: 'en-US',
+      accessLevels,
       route: '/500ddd'
     })
     expect(result).toMatchSnapshot()
@@ -105,6 +111,7 @@ describe('normalize-page', () => {
       ],
       locale: 'en-US',
       defaultLocale: 'en-US',
+      accessLevels,
       route: '/500'
     })
     expect(result).toMatchSnapshot()
@@ -160,6 +167,7 @@ describe('normalize-page', () => {
         }
       ],
       locale: 'en-US',
+      accessLevels,
       route: '/docs'
     })
     expect(result.topLevelNavbarItems).toMatchInlineSnapshot(`
