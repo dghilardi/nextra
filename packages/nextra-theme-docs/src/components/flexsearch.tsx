@@ -9,6 +9,7 @@ import { DEFAULT_LOCALE } from '../constants'
 import type { SearchResult } from '../types'
 import { HighlightMatches } from './highlight-matches'
 import { Search } from './search'
+import { useConfig } from '../contexts';
 
 type SectionIndex = FlexSearch.Document<
   {
@@ -26,6 +27,7 @@ type PageIndex = FlexSearch.Document<
   {
     id: number
     title: string
+    accessLevel: string
     content: string
   },
   ['title']
@@ -44,57 +46,74 @@ const indexes: {
   [locale: string]: [PageIndex, SectionIndex]
 } = {}
 
+const indexedAccessLevels = new Set<string>([]);
+
 // Caches promises that load the index
 const loadIndexesPromises = new Map<string, Promise<void>>()
-const loadIndexes = (basePath: string, locale: string): Promise<void> => {
-  const key = basePath + '@' + locale
+const loadIndexes = (basePath: string, accessLevel: string, locale: string): Promise<void> => {
+  const key = `${basePath}@${accessLevel}-${locale}`;
   if (loadIndexesPromises.has(key)) {
     return loadIndexesPromises.get(key)!
   }
-  const promise = loadIndexesImpl(basePath, locale)
+  const promise = loadIndexesImpl(basePath, accessLevel, locale)
   loadIndexesPromises.set(key, promise)
   return promise
 }
 
 const loadIndexesImpl = async (
   basePath: string,
+  accessLevel: string,
   locale: string
 ): Promise<void> => {
-  const response = await fetch(
-    `${basePath}/_next/static/chunks/nextra-data-${locale}.json`
-  )
-  const searchData = (await response.json()) as SearchData
-
-  const pageIndex: PageIndex = new FlexSearch.Document({
-    cache: 100,
-    tokenize: 'full',
-    document: {
-      id: 'id',
-      index: 'content',
-      store: ['title']
-    },
-    context: {
-      resolution: 9,
-      depth: 2,
-      bidirectional: true
+  const searchData: SearchData | null = await fetch(
+    `${basePath}/_next/static/chunks/nextra-data-${accessLevel}-${locale}.json`
+  ).then(res => {
+    if (res.status === 404) {
+      return null;
+    } else {
+      return res.json();
     }
-  })
+  });
+  if (!searchData) {
+    return;
+  }
 
-  const sectionIndex: SectionIndex = new FlexSearch.Document({
-    cache: 100,
-    tokenize: 'full',
-    document: {
-      id: 'id',
-      index: 'content',
-      tag: 'pageId',
-      store: ['title', 'content', 'url', 'display']
-    },
-    context: {
-      resolution: 9,
-      depth: 2,
-      bidirectional: true
-    }
-  })
+  let pageIndex: PageIndex, sectionIndex: SectionIndex;
+  if (indexes[locale]) {
+    pageIndex = indexes[locale][0];
+    sectionIndex = indexes[locale][1];
+  } else {
+    pageIndex = new FlexSearch.Document({
+      cache: 100,
+      tokenize: 'full',
+      document: {
+        id: 'id',
+        index: 'content',
+        store: ['title']
+      },
+      context: {
+        resolution: 9,
+        depth: 2,
+        bidirectional: true
+      }
+    })
+
+    sectionIndex = new FlexSearch.Document({
+      cache: 100,
+      tokenize: 'full',
+      document: {
+        id: 'id',
+        index: 'content',
+        tag: 'pageId',
+        store: ['title', 'content', 'url', 'display']
+      },
+      context: {
+        resolution: 9,
+        depth: 2,
+        bidirectional: true
+      }
+    })
+  }
 
   let pageId = 0
 
@@ -134,10 +153,12 @@ const loadIndexesImpl = async (
     pageIndex.add({
       id: pageId,
       title: structurizedData.title,
+      accessLevel,
       content: pageContent
     })
   }
 
+  indexedAccessLevels.add(accessLevel);
   indexes[locale] = [pageIndex, sectionIndex]
 }
 
@@ -151,6 +172,8 @@ export function Flexsearch({
   const [error, setError] = useState(false)
   const [results, setResults] = useState<SearchResult[]>([])
   const [search, setSearch] = useState('')
+  const { accessLevelProvider } = useConfig();
+  const accessLevels = accessLevelProvider();
 
   const doSearch = (search: string) => {
     if (!search) return
@@ -245,17 +268,22 @@ export function Flexsearch({
 
   const preload = useCallback(
     async (active: boolean) => {
-      if (active && !indexes[locale]) {
+      const hasNewAccesses = !indexes[locale] || accessLevels
+        .some(level => !indexedAccessLevels.has(level));
+      if (active && hasNewAccesses) {
         setLoading(true)
         try {
-          await loadIndexes(basePath, locale)
+          delete indexes[locale];
+          const indexesPromises = accessLevels
+            .map(level => loadIndexes(basePath, level, locale));
+          await Promise.all(indexesPromises);
         } catch (e) {
           setError(true)
         }
         setLoading(false)
       }
     },
-    [locale, basePath]
+    [locale, accessLevels, basePath]
   )
 
   const handleChange = async (value: string) => {
@@ -266,7 +294,10 @@ export function Flexsearch({
     if (!indexes[locale]) {
       setLoading(true)
       try {
-        await loadIndexes(basePath, locale)
+        delete indexes[locale];
+        const indexesPromises = accessLevels
+          .map(level => loadIndexes(basePath, level, locale));
+        await Promise.all(indexesPromises);
       } catch (e) {
         setError(true)
       }

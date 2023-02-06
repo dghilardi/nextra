@@ -36,8 +36,8 @@ export class NextraSearchPlugin {
             }
             const nextraSearch = entryModule?.buildInfo?.nextraSearch
             if (nextraSearch) {
-              const { title, data, indexKey, route } = nextraSearch
-              const indexFilename = `nextra-data-${indexKey}.json`
+              const { title, data, indexKey, route, accessLevel } = nextraSearch
+              const indexFilename = `nextra-data-${accessLevel}-${indexKey}.json`
               indexFiles[indexFilename] ??= {}
               indexFiles[indexFilename][route] = { title, data }
             }

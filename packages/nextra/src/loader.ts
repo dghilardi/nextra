@@ -214,6 +214,7 @@ async function loader(
     // Store all the things in buildInfo.
     const { buildInfo } = context._module as any
     buildInfo.nextraSearch = {
+      accessLevel: frontMatter.accessLevel || 'public',
       indexKey: searchIndexKey,
       title: fallbackTitle,
       data: structurizedData,
