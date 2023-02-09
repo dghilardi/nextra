@@ -59,6 +59,7 @@ async function loader(
     isPageImport = false,
     theme,
     themeConfig,
+    checkAccessModule,
     locales,
     defaultLocale,
     defaultShowCopyCode,
@@ -187,6 +188,7 @@ async function loader(
   const fallbackTitle =
     frontMatter.title || title || pageTitleFromFilename(fileMap[mdxPath].name)
 
+  const accessLevel = frontMatter.accessLevel || 'public';
   if (searchIndexKey) {
     if (frontMatter.searchable !== false) {
       // Store all the things in buildInfo.
@@ -196,7 +198,7 @@ async function loader(
         title: fallbackTitle,
         data: structurizedData,
         route: pageNextRoute,
-        accessLevel: frontMatter.accessLevel || 'public',
+        accessLevel,
       }
     }
   }
@@ -215,6 +217,11 @@ async function loader(
 
   // Relative path instead of a package name
   const layout = isLocalTheme ? path.resolve(theme) : theme
+  const checkAccessModuleName = !checkAccessModule
+    ? 'nextra/layout'
+    : checkAccessModule.startsWith('.') || checkAccessModule.startsWith('/')
+    ? path.resolve(checkAccessModule)
+    : checkAccessModule;
 
   let pageOpts: PageOpts = {
     filePath: slash(path.relative(CWD, mdxPath)),
@@ -254,6 +261,16 @@ import __nextra_layout from '${layout}'
 ${themeConfigImport}
 ${katexCssImport}
 ${cssImport}
+
+import { checkAccess } from '${checkAccessModuleName}';
+
+export async function getServerSideProps(context) {
+  return { 
+    props: { 
+      grantedAccess: await checkAccess('${accessLevel}', context) 
+    } 
+  }
+}
 
 ${finalResult.replace(
   'export default MDXContent;',

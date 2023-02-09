@@ -139,6 +139,7 @@ type Transform = (
 export type NextraConfig = {
   theme: Theme
   themeConfig?: string
+  checkAccessModule?: string
   defaultShowCopyCode?: boolean
   flexsearch?: Flexsearch
   staticImage?: boolean
