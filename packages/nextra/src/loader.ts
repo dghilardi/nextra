@@ -75,6 +75,7 @@ async function loader(
     isPageImport = false,
     theme,
     themeConfig,
+    checkAccessModule,
     locales,
     defaultLocale,
     defaultShowCopyCode,
@@ -210,11 +211,12 @@ async function loader(
   const fallbackTitle =
     frontMatter.title || title || pageTitleFromFilename(fileMap[mdxPath].name)
 
+  const accessLevel = frontMatter.accessLevel || 'public';
   if (searchIndexKey && frontMatter.searchable !== false) {
     // Store all the things in buildInfo.
     const { buildInfo } = context._module as any
     buildInfo.nextraSearch = {
-      accessLevel: frontMatter.accessLevel || 'public',
+      accessLevel,
       indexKey: searchIndexKey,
       title: fallbackTitle,
       data: structurizedData,
@@ -236,6 +238,11 @@ async function loader(
 
   // Relative path instead of a package name
   const layout = isLocalTheme ? slash(path.resolve(theme)) : theme
+  const checkAccessModuleName = !checkAccessModule
+    ? 'nextra/layout'
+    : checkAccessModule.startsWith('.') || checkAccessModule.startsWith('/')
+    ? path.resolve(checkAccessModule)
+    : checkAccessModule;
 
   let pageOpts: Partial<PageOpts> = {
     filePath: slash(path.relative(CWD, mdxPath)),
@@ -273,6 +280,15 @@ ${cssImport}`
 
   if (pageNextRoute === '/_app') {
     return `${pageImports}
+import { checkAccess } from '${checkAccessModuleName}';
+
+export async function getServerSideProps(context) {
+  return { 
+    props: { 
+      grantedAccess: await checkAccess('${accessLevel}', context) 
+    } 
+  }
+}
 ${finalResult}
 
 const __nextra_internal__ = globalThis[Symbol.for('__nextra_internal__')] ||= Object.create(null)

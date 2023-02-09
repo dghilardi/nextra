@@ -1,10 +1,14 @@
+import { GetServerSidePropsContext } from 'next';
 import type { ReactElement } from 'react'
 import { SSGContext } from './ssg'
 import { useInternals } from './use-internals'
 
+export const checkAccess = async (accessLevel: string, context: GetServerSidePropsContext): Promise<boolean> => accessLevel === 'public';
+
 export default function Nextra({
   __nextra_pageMap,
   __nextra_dynamic_opts,
+  grantedAccess,
   ...props
 }: any): ReactElement {
   const { context, Layout } = useInternals()
@@ -25,6 +29,10 @@ export default function Nextra({
       title,
       frontMatter
     }
+  }
+
+  if (!grantedAccess) {
+    return <h1>Access Denied</h1>
   }
 
   return (
