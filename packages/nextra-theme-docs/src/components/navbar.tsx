@@ -10,6 +10,7 @@ import { Anchor } from './anchor'
 
 export type NavBarProps = {
   flatDirectories: Item[]
+  grants: string[]
   items: (PageItem | MenuItem)[]
 }
 
@@ -78,7 +79,7 @@ function NavbarMenu({
   )
 }
 
-export function Navbar({ flatDirectories, items }: NavBarProps): ReactElement {
+export function Navbar({ flatDirectories, grants, items }: NavBarProps): ReactElement {
   const config = useConfig()
   const activeRoute = useFSRoute()
   const { menu, setMenu } = useMenu()
@@ -164,7 +165,8 @@ export function Navbar({ flatDirectories, items }: NavBarProps): ReactElement {
 
         {renderComponent(config.search.component, {
           directories: flatDirectories,
-          className: 'nx-hidden md:nx-inline-block mx-min-w-[200px]'
+          className: 'nx-hidden md:nx-inline-block mx-min-w-[200px]',
+          grants,
         })}
 
         {config.project.link ? (

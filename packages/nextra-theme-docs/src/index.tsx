@@ -112,12 +112,12 @@ const InnerLayout = ({
   frontMatter,
   headings,
   timestamp,
-  children
-}: PageOpts & { children: ReactNode }): ReactElement => {
+  children,
+  grants
+}: PageOpts & { children: ReactNode, grants: string[] }): ReactElement => {
   const config = useConfig()
   const { locale = DEFAULT_LOCALE, defaultLocale } = useRouter()
   const fsPath = useFSRoute()
-  const accessLevels = config.accessLevelProvider();
 
   const {
     activeType,
@@ -135,10 +135,10 @@ const InnerLayout = ({
         list: pageMap,
         locale,
         defaultLocale,
-        accessLevels,
+        accessLevels: grants,
         route: fsPath
       }),
-    [pageMap, locale, defaultLocale, fsPath, accessLevels]
+    [pageMap, locale, defaultLocale, fsPath, grants]
   )
 
   const themeContext = { ...activeThemeContext, ...frontMatter }
@@ -189,7 +189,8 @@ const InnerLayout = ({
       {themeContext.navbar &&
         renderComponent(config.navbar.component, {
           flatDirectories,
-          items: topLevelNavbarItems
+          items: topLevelNavbarItems,
+          grants,
         })}
       <div
         className={cn(
@@ -205,6 +206,7 @@ const InnerLayout = ({
             headings={headings}
             asPopover={hideSidebar}
             includePlaceholder={themeContext.layout === 'default'}
+            grants={grants}
           />
           {tocEl}
           <SkipNavContent />
@@ -248,7 +250,7 @@ export default function Layout({
 }: NextraThemeLayoutProps): ReactElement {
   return (
     <ConfigProvider value={context}>
-      <InnerLayout {...context.pageOpts}>{children}</InnerLayout>
+      <InnerLayout {...context.pageOpts} grants={context.pageProps.grants}>{children}</InnerLayout>
     </ConfigProvider>
   )
 }

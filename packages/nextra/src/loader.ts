@@ -280,12 +280,18 @@ ${cssImport}`
 
   if (pageNextRoute === '/_app') {
     return `${pageImports}
-import { checkAccess } from '${checkAccessModuleName}';
+import { listUserGrants } from '${checkAccessModuleName}';
 
 export async function getServerSideProps(context) {
+  const grants = await listUserGrants(context);
+  if (!grants.includes('${accessLevel}')) {
+    return {
+      notFound: true,
+    };
+  }
   return { 
     props: { 
-      grantedAccess: await checkAccess('${accessLevel}', context) 
+      grants
     } 
   }
 }

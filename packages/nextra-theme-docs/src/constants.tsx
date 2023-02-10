@@ -124,7 +124,7 @@ export const themeSchema = z.strictObject({
   }),
   search: z.strictObject({
     component: z.custom<
-      ReactNode | FC<{ className?: string; directories: Item[] }>
+      ReactNode | FC<{ className?: string; directories: Item[]; grants: string[] }>
     >(...reactNode),
     emptyResult: z.custom<ReactNode | FC>(...reactNode),
     error: z.string().or(z.function().returns(z.string())),
@@ -160,8 +160,7 @@ export const themeSchema = z.strictObject({
       .optional(),
     title: z.custom<ReactNode | FC>(...reactNode)
   }),
-  useNextSeoProps: z.custom<() => NextSeoProps | void>(isFunction),
-  accessLevelProvider: z.function().returns(z.array(z.string()))
+  useNextSeoProps: z.custom<() => NextSeoProps | void>(isFunction)
 })
 
 const publicThemeSchema = themeSchema.deepPartial().extend({
@@ -298,10 +297,10 @@ export const DEFAULT_THEME: DocsThemeConfig = {
     )
   },
   search: {
-    component: function Search({ className, directories }) {
+    component: function Search({ className, directories, grants }) {
       const config = useConfig()
       return config.flexsearch ? (
-        <Flexsearch className={className} />
+        <Flexsearch className={className} accessLevels={grants} />
       ) : (
         <MatchSorterSearch className={className} directories={directories} />
       )
@@ -353,7 +352,6 @@ export const DEFAULT_THEME: DocsThemeConfig = {
     title: 'On This Page'
   },
   useNextSeoProps: () => ({ titleTemplate: '%s – Nextra' }),
-  accessLevelProvider: () => ['public'],
 }
 
 export const DEEP_OBJECT_KEYS = Object.entries(DEFAULT_THEME)
