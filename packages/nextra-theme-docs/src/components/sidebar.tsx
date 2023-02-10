@@ -308,7 +308,8 @@ interface SideBarProps {
   fullDirectories: Item[]
   asPopover?: boolean
   headings: Heading[]
-  includePlaceholder: boolean
+  includePlaceholder: boolean,
+  grants: string[]
 }
 
 export function Sidebar({
@@ -317,7 +318,8 @@ export function Sidebar({
   fullDirectories,
   asPopover = false,
   headings,
-  includePlaceholder
+  includePlaceholder,
+  grants,
 }: SideBarProps): ReactElement {
   const config = useConfig()
   const { menu, setMenu } = useMenu()
@@ -399,6 +401,7 @@ export function Sidebar({
       >
         <div className="nx-px-4 nx-pt-4 md:nx-hidden">
           {renderComponent(config.search.component, {
+            grants,
             directories: flatDirectories
           })}
         </div>

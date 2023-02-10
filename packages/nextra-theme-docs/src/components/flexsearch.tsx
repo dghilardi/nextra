@@ -169,17 +169,17 @@ const loadIndexesImpl = async (
 }
 
 export function Flexsearch({
-  className
+  className,
+  accessLevels,
 }: {
-  className?: string
+  className?: string,
+  accessLevels: string[]
 }): ReactElement {
   const { locale = DEFAULT_LOCALE, basePath } = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(false)
   const [results, setResults] = useState<SearchResult[]>([])
   const [search, setSearch] = useState('')
-  const { accessLevelProvider } = useConfig();
-  const accessLevels = accessLevelProvider();
 
   const doSearch = (search: string) => {
     if (!search) return
