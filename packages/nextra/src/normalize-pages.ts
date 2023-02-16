@@ -450,18 +450,21 @@ export function normalizePages({
   };
 }
 
-function accessLevelChecker<T extends (MdxFile | FolderWithoutChildren) & { children?: T[], type: string }>(accessLevels: string[]): (i: T) => T[] {
+function accessLevelChecker<T extends (MdxFile | FolderWithoutChildren) & { children?: T[], type: string, href?: string, accessLevel?: string }>(accessLevels: string[]): (i: T) => T[] {
   return (item: T) => {
     const filteredChildren = item.children?.flatMap(accessLevelChecker(accessLevels));
     const filteredItems = (item.type === 'menu' ? filterRecord((item as unknown as IMenuItem).items, menuItem => !menuItem.accessLevel || accessLevels.includes(menuItem.accessLevel)) : undefined);
     
+    const hasValidGlobalAccess = !item.accessLevel || accessLevels.includes(item.accessLevel);
     const isValidMenu = filteredItems && Object.keys(filteredItems).length > 0;
     const hasValidChildren = filteredChildren && filteredChildren.length > 0;
     const hasValidAccess = item.kind === 'MdxPage' && (!item.frontMatter?.accessLevel || accessLevels.includes(item.frontMatter.accessLevel));
+    const hasValidLink = !!item.href;
 
-    return isValidMenu
+    return hasValidGlobalAccess && (isValidMenu
       || hasValidChildren
-      || hasValidAccess ?
+      || hasValidAccess 
+      || hasValidLink)?
       [{ ...item, children: filteredChildren, items: filteredItems }] : [];
   };
 }
