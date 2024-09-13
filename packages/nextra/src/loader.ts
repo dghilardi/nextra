@@ -329,6 +329,21 @@ ${
   const lastIndexOfFooter = finalResult.lastIndexOf(FOOTER_TO_REMOVE)
 
   const rawJs = `import { setupNextraPage } from 'nextra/setup-page'
+import { listUserGrants } from '${checkAccessModuleName}';
+
+export async function getServerSideProps(context) {
+  const grants = await listUserGrants(context);
+  if (!grants.includes('${accessLevel}')) {
+    return {
+      notFound: true,
+    };
+  }
+  return { 
+    props: { 
+      grants
+    } 
+  }
+}
 ${HAS_UNDERSCORE_APP_MDX_FILE ? '' : pageImports}
 ${
   // Remove the last match of `export default MDXContent;` because it can be existed in the raw MDX file
