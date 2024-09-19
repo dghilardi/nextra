@@ -273,14 +273,8 @@ async function loader(
     ? `import '${theme}/style.css'`
     : ''
   const finalResult = transform ? await transform(result, { route }) : result
-  const pageImports = `import __nextra_layout from '${layout}'
-${themeConfigImport}
-${katexCssImport}
-${cssImport}`
-
-  if (pageNextRoute === '/_app') {
-    return `${pageImports}
-import { listUserGrants } from '${checkAccessModuleName}';
+  const originalServerProps = finalResult.includes('_getServerSideProps') ? 'await Promise.resolve(_getServerSideProps(context))' : '{}';
+  const getServerProps = `import { listUserGrants } from '${checkAccessModuleName}';
 
 export async function getServerSideProps(context) {
   const grants = await listUserGrants(context);
@@ -291,10 +285,19 @@ export async function getServerSideProps(context) {
   }
   return { 
     props: { 
-      grants
+      grants,
+      ...(${originalServerProps}),
     } 
   }
-}
+}`;
+  const pageImports = `import __nextra_layout from '${layout}'
+${themeConfigImport}
+${katexCssImport}
+${cssImport}`
+
+  if (pageNextRoute === '/_app') {
+    return `${pageImports}
+${getServerProps}
 ${finalResult}
 
 const __nextra_internal__ = globalThis[Symbol.for('__nextra_internal__')] ||= Object.create(null)
@@ -329,21 +332,7 @@ ${
   const lastIndexOfFooter = finalResult.lastIndexOf(FOOTER_TO_REMOVE)
 
   const rawJs = `import { setupNextraPage } from 'nextra/setup-page'
-import { listUserGrants } from '${checkAccessModuleName}';
-
-export async function getServerSideProps(context) {
-  const grants = await listUserGrants(context);
-  if (!grants.includes('${accessLevel}')) {
-    return {
-      notFound: true,
-    };
-  }
-  return { 
-    props: { 
-      grants
-    } 
-  }
-}
+${getServerProps}
 ${HAS_UNDERSCORE_APP_MDX_FILE ? '' : pageImports}
 ${
   // Remove the last match of `export default MDXContent;` because it can be existed in the raw MDX file
